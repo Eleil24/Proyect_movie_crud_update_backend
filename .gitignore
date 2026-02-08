@@ -1,33 +1,15 @@
-### Spring Boot / Maven ###
+### Maven ###
 target/
-HELP.md
-.mvn/wrapper/maven-wrapper.jar
-.mvn/wrapper/maven-wrapper.properties
 
 ### IDEs ###
 .idea/
-*.iws
+.vscode/
 *.iml
 *.ipr
-
-.vscode/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
+*.iws
 .project
-.settings
-.springBeans
-.sts4-cache
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
+.classpath
+.settings/
 
 ### OS ###
 .DS_Store
@@ -37,14 +19,11 @@ Thumbs.db
 logs/
 *.log
 
-### Environment / Secrets ###
+### Environment ###
 .env
 .env.*
 
-### Docker ###
-docker-data/
-
-### Temp files ###
+### Temp ###
 bin/
 out/
 *.tmp
