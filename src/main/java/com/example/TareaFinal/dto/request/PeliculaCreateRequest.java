@@ -14,5 +14,6 @@ public class PeliculaCreateRequest {
     private String nombre;
     private Integer anioEstreno;
     private String synopsis;
+    private String imagenUrl;
     private List<String> categorias;
 }

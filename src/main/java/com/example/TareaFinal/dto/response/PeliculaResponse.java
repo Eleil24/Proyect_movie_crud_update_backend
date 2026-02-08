@@ -19,6 +19,7 @@ public class PeliculaResponse {
     private Integer anioEstreno;
     private String synopsis;
     private Date createAt;
+    private String imagenUrl;
     private String usuarioPelicula;
     private List<String> categorias;
 

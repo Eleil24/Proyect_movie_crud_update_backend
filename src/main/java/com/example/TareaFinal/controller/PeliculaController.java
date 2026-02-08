@@ -333,8 +333,8 @@ public class PeliculaController {
         return lista;
     }
 
-    @GetMapping("/findName")
-    public List<PeliculaResponse> buscarPorNombre(@RequestParam String nombre) {
-        return peliculaService.buscarPorNombre(nombre);
+    @GetMapping("/detail/{id}")
+    public List<PeliculaResponse> buscarPorId(@PathVariable("id") int id) {
+        return peliculaService.buscarPorId(id);
     }
 }

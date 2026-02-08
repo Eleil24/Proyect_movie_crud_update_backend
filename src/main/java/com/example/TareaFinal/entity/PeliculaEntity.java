@@ -23,7 +23,7 @@ public class PeliculaEntity {
     private String synopsis;
     @Column(name = "create_at")
     private Date createAt;
-
+    private String imagenUrl;
 
     @ManyToOne
     @JoinColumn(name = "id_usuario", nullable = false)

@@ -15,6 +15,6 @@ public interface PeliculaService {
     ResponseBase <String> eliminarPelicula(int nombrePelicula);
     List<PeliculaResponse> findPeliculas(Pageable pageable, String nombre, Integer anioEstreno, String categoria);
     List<PeliculaResponse> findAll();
-    List<PeliculaResponse> buscarPorNombre(String nombre);
+    List<PeliculaResponse> buscarPorId(int id);
 
 }

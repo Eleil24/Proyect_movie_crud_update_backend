@@ -46,6 +46,7 @@ public class SecurityConfig {
                                 "/api/v1/pelicula/save",
                                 "/api/v1/pelicula/update",
                                 "/api/v1/pelicula/delete",
+                                "/api/v1/pelicula/detail",
                                 "/api/v1/categorias/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",

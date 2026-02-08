@@ -66,6 +66,7 @@ public class PeliculaServiceImpl implements PeliculaService {
             pelicula.setAnioEstreno(peliculaCreateRequest.getAnioEstreno());
             pelicula.setSynopsis(peliculaCreateRequest.getSynopsis());
             pelicula.setCreateAt(new Date());
+            pelicula.setImagenUrl(peliculaCreateRequest.getImagenUrl());
             pelicula.setUsuarioEntity(usuario);
             peliculaRepository.save(pelicula);
 
@@ -85,6 +86,7 @@ public class PeliculaServiceImpl implements PeliculaService {
                     pelicula.getAnioEstreno(),
                     pelicula.getSynopsis(),
                     pelicula.getCreateAt(),
+                    pelicula.getImagenUrl(),
                     usuario.getCorreo(),
                     categoriasNombres
             );
@@ -95,14 +97,12 @@ public class PeliculaServiceImpl implements PeliculaService {
     @Override
     public ResponseBase<PeliculaResponse> actualizarPelicula(int idPelicula, PeliculaUpdateRequest peliculaUpdateRequest) {
 
-        // 1. Buscar película por ID
         Optional<PeliculaEntity> peliculaOpt = peliculaRepository.findById(idPelicula);
         if (peliculaOpt.isEmpty()) {
             return new ResponseBase<>(404, "Pelicula no encontrada", null);
         }
         PeliculaEntity pelicula = peliculaOpt.get();
 
-        // 2. Validar categorías solo si vienen en el Request
         List<CategoriaEntity> categoriasEncontradas = new ArrayList<>();
         if (peliculaUpdateRequest.getCategorias() != null && !peliculaUpdateRequest.getCategorias().isEmpty()) {
             for (String nombreCat : peliculaUpdateRequest.getCategorias()) {
@@ -114,12 +114,11 @@ public class PeliculaServiceImpl implements PeliculaService {
             }
         }
 
-        // 3. Actualizar campos (Solo si no vienen nulos)
         if (peliculaUpdateRequest.getNombre() != null) pelicula.setNombre(peliculaUpdateRequest.getNombre());
         if (peliculaUpdateRequest.getAnioEstreno() != null) pelicula.setAnioEstreno(peliculaUpdateRequest.getAnioEstreno());
         if (peliculaUpdateRequest.getSynopsis() != null) pelicula.setSynopsis(peliculaUpdateRequest.getSynopsis());
+        if (peliculaUpdateRequest.getImagenUrl() != null) pelicula.setImagenUrl(peliculaUpdateRequest.getImagenUrl());
 
-        // 4. Actualizar relaciones de categorías
         if (!categoriasEncontradas.isEmpty()) {
             catePeliRepository.deleteByPeliculaId(pelicula.getPeliculaId());
             for (CategoriaEntity cat : categoriasEncontradas) {
@@ -132,7 +131,6 @@ public class PeliculaServiceImpl implements PeliculaService {
 
         peliculaRepository.save(pelicula);
 
-        // 5. Preparar nombres de categorías para el Response
 
         List<String> categoriasFinales;
         if (!categoriasEncontradas.isEmpty()) {
@@ -148,6 +146,7 @@ public class PeliculaServiceImpl implements PeliculaService {
                 pelicula.getAnioEstreno(),
                 pelicula.getSynopsis(),
                 pelicula.getCreateAt(),
+                pelicula.getImagenUrl(),
                 pelicula.getUsuarioEntity().getCorreo(),
                 categoriasFinales
         );
@@ -187,6 +186,7 @@ public class PeliculaServiceImpl implements PeliculaService {
             peliculaResponse.setAnioEstreno(entity.getAnioEstreno());
             peliculaResponse.setSynopsis(entity.getSynopsis());
             peliculaResponse.setCreateAt(entity.getCreateAt());
+            peliculaResponse.setImagenUrl(entity.getImagenUrl());
             peliculaResponse.setUsuarioPelicula(entity.getUsuarioEntity().getCorreo());
 
             // Obtener las categorías de cada película
@@ -235,30 +235,28 @@ public class PeliculaServiceImpl implements PeliculaService {
     }
 
     @Override
-    public List<PeliculaResponse> buscarPorNombre(String nombre) {
-        List<PeliculaEntity> peliculas = peliculaRepository.findByNombreContainingIgnoreCase(nombre);
+    public List<PeliculaResponse> buscarPorId(int id) {
 
-        List<PeliculaResponse> responses = new ArrayList<>();
+        Optional<PeliculaEntity> peliculaOpt = peliculaRepository.findById(id);
+        PeliculaEntity entity = peliculaOpt.get();
 
-        for (PeliculaEntity entity : peliculas) {
-            PeliculaResponse response = new PeliculaResponse();
-            response.setId(entity.getPeliculaId());
-            response.setNombre(entity.getNombre());
-            response.setAnioEstreno(entity.getAnioEstreno());
-            response.setSynopsis(entity.getSynopsis());
-            response.setCreateAt(entity.getCreateAt());
-            response.setUsuarioPelicula(entity.getUsuarioEntity().getCorreo());
+        PeliculaResponse response = new PeliculaResponse();
+        response.setId(entity.getPeliculaId());
+        response.setNombre(entity.getNombre());
+        response.setAnioEstreno(entity.getAnioEstreno());
+        response.setSynopsis(entity.getSynopsis());
+        response.setImagenUrl(entity.getImagenUrl());
+        response.setCreateAt(entity.getCreateAt());
+        response.setUsuarioPelicula(entity.getUsuarioEntity().getCorreo());
 
-            List<CatePeliEntity> catePelis = catePeliRepository.findByPelicula(entity);
-            List<String> categorias = catePelis.stream()
-                    .map(cp -> cp.getCategoria().getName())
-                    .toList();
+        List<CatePeliEntity> catePelis = catePeliRepository.findByPelicula(entity);
+        List<String> categorias = catePelis.stream()
+                .map(cp -> cp.getCategoria().getName())
+                .toList();
 
-            response.setCategorias(categorias);
-            responses.add(response);
-        }
+        response.setCategorias(categorias);
+        return List.of(response);
 
-        return responses;
     }
 
 
