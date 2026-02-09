@@ -1,7 +1,10 @@
 package com.example.TareaFinal.controller;
 
 import com.example.TareaFinal.dto.request.LoginRequest;
+import com.example.TareaFinal.dto.request.PeliculaUpdateRequest;
 import com.example.TareaFinal.dto.request.UsuarioCreateRequest;
+import com.example.TareaFinal.dto.response.PeliculaResponse;
+import com.example.TareaFinal.dto.response.ResponseBase;
 import com.example.TareaFinal.dto.response.UsuarioResponse;
 import com.example.TareaFinal.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +15,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @CrossOrigin(origins = {
         "http://localhost:5173",
@@ -106,5 +111,17 @@ public class UsuarioController {
     @PostMapping("/login")
     public String loginUser(@RequestBody LoginRequest loginRequest) {
         return usuarioService.login(loginRequest);
+    }
+
+    @GetMapping("/findAll")
+    public List<UsuarioResponse> getAllUsuarios() {
+        List<UsuarioResponse> lista = usuarioService.findAll();
+        return lista;
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseBase<String> deleteUsuarios(
+           @PathVariable("id") int idPelicula) {
+        return usuarioService.eliminarUsuario(idPelicula);
     }
 }

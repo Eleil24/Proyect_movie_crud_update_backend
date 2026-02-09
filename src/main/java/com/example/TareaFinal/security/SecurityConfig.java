@@ -48,11 +48,12 @@ public class SecurityConfig {
                                 "/api/v1/pelicula/delete",
                                 "/api/v1/pelicula/detail",
                                 "/api/v1/categorias/**",
+                                "/api/v1/usuario/delete",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
                                 "/webjars/**").permitAll()
-                        .requestMatchers("/api/v1/usuario/save", "/api/v1/pelicula/find")
+                        .requestMatchers("/api/v1/usuario/save","/api/v1/usuario/findAll", "/api/v1/pelicula/find")
                         .hasAnyAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )

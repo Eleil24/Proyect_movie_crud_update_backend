@@ -2,6 +2,7 @@ package com.example.TareaFinal.service.impl;
 
 import com.example.TareaFinal.dto.request.LoginRequest;
 import com.example.TareaFinal.dto.request.UsuarioCreateRequest;
+import com.example.TareaFinal.dto.response.ResponseBase;
 import com.example.TareaFinal.dto.response.UsuarioResponse;
 import com.example.TareaFinal.entity.RoleEntity;
 import com.example.TareaFinal.entity.UsuarioEntity;
@@ -16,6 +17,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -67,5 +70,34 @@ public class UsuarioServiceImpl implements UsuarioService {
             return token;
         }
         return null;
+    }
+
+    @Override
+    public List<UsuarioResponse> findAll() {
+        List <UsuarioResponse> responses = new ArrayList<>();
+        List <UsuarioEntity> listaUsuario = usuarioRepository.findAll();
+
+        for (UsuarioEntity entity : listaUsuario){
+            UsuarioResponse response = new UsuarioResponse();
+            response.setUsuarioId(entity.getUsuarioId());
+            response.setCorreo(entity.getCorreo());
+            response.setRole(entity.getRoleEntity().getRole());
+            responses.add(response);
+        }
+        return responses;
+    }
+
+    @Override
+    public ResponseBase<String> eliminarUsuario(int idUsuario) {
+        try{
+            if (usuarioRepository.existsById(idUsuario)){
+                usuarioRepository.deleteById(idUsuario);
+                return new ResponseBase<>(200, "Éxito", "Usuario eliminado correctamente");
+            }else {
+                return new ResponseBase<>(404, "Error", "El usuario no existe");
+            }
+        } catch (Exception e) {
+            return new ResponseBase<>(500, "Error de servidor", e.getMessage());
+        }
     }
 }
