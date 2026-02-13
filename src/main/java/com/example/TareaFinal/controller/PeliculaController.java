@@ -3,6 +3,7 @@ package com.example.TareaFinal.controller;
 import com.example.TareaFinal.dto.request.PeliculaCreateRequest;
 import com.example.TareaFinal.dto.request.PeliculaUpdateRequest;
 import com.example.TareaFinal.dto.response.PeliculaResponse;
+import com.example.TareaFinal.dto.response.PeliculaResponseRating;
 import com.example.TareaFinal.dto.response.ResponseBase;
 import com.example.TareaFinal.service.JwtService;
 import com.example.TareaFinal.service.PeliculaService;
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -336,5 +338,11 @@ public class PeliculaController {
     @GetMapping("/detail/{id}")
     public List<PeliculaResponse> buscarPorId(@PathVariable("id") int id) {
         return peliculaService.buscarPorId(id);
+    }
+
+    @GetMapping("/findAllRate")
+    public List<PeliculaResponseRating> getAllPeliculasRate(Authentication authentication) {
+        List<PeliculaResponseRating> lista = peliculaService.findAllRate(authentication);
+        return lista;
     }
 }

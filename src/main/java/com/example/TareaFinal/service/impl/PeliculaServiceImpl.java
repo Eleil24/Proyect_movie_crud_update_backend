@@ -3,16 +3,15 @@ package com.example.TareaFinal.service.impl;
 import com.example.TareaFinal.dto.request.PeliculaCreateRequest;
 import com.example.TareaFinal.dto.request.PeliculaUpdateRequest;
 import com.example.TareaFinal.dto.response.PeliculaResponse;
+import com.example.TareaFinal.dto.response.PeliculaResponseRating;
 import com.example.TareaFinal.dto.response.ResponseBase;
 import com.example.TareaFinal.entity.*;
-import com.example.TareaFinal.repository.CatePeliRepository;
-import com.example.TareaFinal.repository.CategoriaRepository;
-import com.example.TareaFinal.repository.PeliculaRepository;
-import com.example.TareaFinal.repository.UsuarioRepository;
+import com.example.TareaFinal.repository.*;
 import com.example.TareaFinal.service.PeliculaService;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,12 +28,14 @@ public class PeliculaServiceImpl implements PeliculaService {
     private final UsuarioRepository usuarioRepository;
     private final CategoriaRepository categoriaRepository;
     private final CatePeliRepository catePeliRepository;
+    private final CalificacionRepository calificacionRepository;
 
-    public PeliculaServiceImpl(PeliculaRepository peliculaRepository, UsuarioRepository usuarioRepository, CategoriaRepository categoriaRepository, CatePeliRepository catePeliRepository) {
+    public PeliculaServiceImpl(PeliculaRepository peliculaRepository, UsuarioRepository usuarioRepository, CategoriaRepository categoriaRepository, CatePeliRepository catePeliRepository, CalificacionRepository calificacionRepository) {
         this.peliculaRepository = peliculaRepository;
         this.usuarioRepository = usuarioRepository;
         this.categoriaRepository = categoriaRepository;
         this.catePeliRepository = catePeliRepository;
+        this.calificacionRepository = calificacionRepository;
     }
 
     @Override
@@ -259,5 +260,46 @@ public class PeliculaServiceImpl implements PeliculaService {
 
     }
 
+    @Override
+    public List<PeliculaResponseRating> findAllRate(Authentication auth) {
+
+        String email = auth.getName();
+
+        UsuarioEntity usuario = usuarioRepository.findByCorreo(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        List<PeliculaEntity> peliculas = peliculaRepository.findAll();
+
+        List<PeliculaResponseRating> responseList = new ArrayList<>();
+
+        for (PeliculaEntity pelicula : peliculas) {
+
+            Optional<CalificacionEntity> calificacion = calificacionRepository.findByUsuarioAndPelicula(usuario, pelicula);
+
+            Integer miRating = calificacion
+                    .map(CalificacionEntity::getRating)
+                    .orElse(null);
+
+            List<CatePeliEntity> catePelis = catePeliRepository.findByPelicula(pelicula);
+            List<String> categorias = catePelis.stream()
+                    .map(cp -> cp.getCategoria().getName())
+                    .toList();
+
+            PeliculaResponseRating response = new PeliculaResponseRating(
+                    pelicula.getPeliculaId(),
+                    pelicula.getNombre(),
+                    pelicula.getAnioEstreno(),
+                    pelicula.getSynopsis(),
+                    pelicula.getImagenUrl(),
+                    categorias,
+                    miRating
+            );
+
+            responseList.add(response);
+        }
+
+        return responseList;
+
+    }
 
 }

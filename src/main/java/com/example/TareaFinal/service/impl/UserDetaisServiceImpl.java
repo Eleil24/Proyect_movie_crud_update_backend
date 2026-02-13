@@ -29,7 +29,7 @@ public class UserDetaisServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException("Usuario no encontrado");
         }
         UsuarioEntity usuarioEntity = optionalUsuarioEntity.get();
-        SimpleGrantedAuthority roleUsuario = new SimpleGrantedAuthority(usuarioEntity.getRoleEntity().getRole());
+        SimpleGrantedAuthority roleUsuario = new SimpleGrantedAuthority("ROLE_" + usuarioEntity.getRoleEntity().getRole());
         Set<GrantedAuthority> roles = new HashSet<>();
         roles.add(roleUsuario);
 

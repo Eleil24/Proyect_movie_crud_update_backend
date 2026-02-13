@@ -1,6 +1,7 @@
 package com.example.TareaFinal.controller;
 
 import com.example.TareaFinal.dto.request.RateRequest;
+import com.example.TareaFinal.dto.response.CalificacionResponse;
 import com.example.TareaFinal.dto.response.RateResponse;
 import com.example.TareaFinal.dto.response.ResponseBase;
 import com.example.TareaFinal.service.CalificacionService;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -106,17 +108,8 @@ public class RateController {
     })
     @PostMapping("/save")
     public ResponseBase<RateResponse> rateMovie(
-            @RequestBody RateRequest request,
-            @RequestHeader("Authorization") String authHeader) {
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return new ResponseBase<>(401, "Token no proporcionado", null);
-        }
-
-        String token = authHeader.substring(7);
-        String username = jwtService.extractUsername(token);
-
-        return calificacionService.calificarPelicula(username, request);
+            @RequestBody RateRequest request) {
+            return calificacionService.calificarPelicula(request);
     }
 
     @Operation(summary = "Listar todas las calificaciones realizadas por el usuario autenticado")
@@ -182,9 +175,9 @@ public class RateController {
     public ResponseBase<List<RateResponse>> listarCalificacionesUsuario(
             @RequestHeader("Authorization") String authHeader) {
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return new ResponseBase<>(401, "Token no proporcionado", null);
-        }
+//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//            return new ResponseBase<>(401, "Token no proporcionado", null);
+//        }
 
         String token = authHeader.substring(7);
         String username = jwtService.extractUsername(token);
@@ -264,19 +257,25 @@ public class RateController {
                     )
             )
     })
-    @DeleteMapping("/delete")
+    @DeleteMapping("/delete/{idPeli}")
     public ResponseBase<String> eliminarRate(
-            @RequestHeader("Authorization") String authHeader,
-            @RequestParam String nombrePelicula) {
+            @PathVariable int idPeli,
+            Authentication authentication) {
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return new ResponseBase<>(401, "Token no proporcionado", null);
-        }
+        return calificacionService.eliminarCalificacion(idPeli, authentication);
+    }
 
-        String token = authHeader.substring(7);
-        String username = jwtService.extractUsername(token);
+    @GetMapping("/findAll")
+    public List<CalificacionResponse> getAllCalificaciones() {
+        return calificacionService.findAll();
+    }
 
-        return calificacionService.eliminarCalificacion(username, nombrePelicula);
+    @DeleteMapping("/deleteAdmin")
+    public ResponseBase<String> eliminarRateAdmin(
+            @RequestParam int idPelicula,
+            @RequestParam String correo) {
+
+        return calificacionService.eliminarCalificacionAdmin(idPelicula, correo);
     }
 
 }

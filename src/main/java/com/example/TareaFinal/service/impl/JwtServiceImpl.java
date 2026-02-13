@@ -19,8 +19,15 @@ public class JwtServiceImpl implements JwtService {
     public String generateToken(UserDetails userDetails) {
 //        HashMap<String, Object> claims = new HashMap<>();
 //        claims.put("prueba", "Esta es una prueba de agregar un claim");
+
+        var roles = userDetails.getAuthorities()
+                .stream()
+                .map(auth -> auth.getAuthority())
+                .toList();
+
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
+                .claim("roles", roles)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 900000))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)

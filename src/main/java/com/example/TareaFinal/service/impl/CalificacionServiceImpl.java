@@ -1,6 +1,7 @@
 package com.example.TareaFinal.service.impl;
 
 import com.example.TareaFinal.dto.request.RateRequest;
+import com.example.TareaFinal.dto.response.CalificacionResponse;
 import com.example.TareaFinal.dto.response.RateResponse;
 import com.example.TareaFinal.dto.response.ResponseBase;
 import com.example.TareaFinal.entity.CalificacionEntity;
@@ -10,6 +11,8 @@ import com.example.TareaFinal.repository.CalificacionRepository;
 import com.example.TareaFinal.repository.PeliculaRepository;
 import com.example.TareaFinal.repository.UsuarioRepository;
 import com.example.TareaFinal.service.CalificacionService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -30,14 +33,20 @@ public class CalificacionServiceImpl implements CalificacionService {
     }
 
     @Override
-    public ResponseBase<RateResponse> calificarPelicula(String username, RateRequest request) {
+    public ResponseBase<RateResponse> calificarPelicula(RateRequest request) {
+
+        String username = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
 
         Optional<UsuarioEntity> usuarioOpt = usuarioRepository.findByCorreo(username);
         if (usuarioOpt.isEmpty()) {
             return new ResponseBase<>(400, "Usuario no encontrado", null);
         }
 
-        Optional<PeliculaEntity> peliculaOpt = peliculaRepository.findByNombre(request.getNomPelicula());
+        Optional<PeliculaEntity> peliculaOpt = peliculaRepository.findById(request.getIdPelicula());
+
         if (peliculaOpt.isEmpty()) {
             return new ResponseBase<>(404, "Película no encontrada", null);
         }
@@ -45,18 +54,14 @@ public class CalificacionServiceImpl implements CalificacionService {
         UsuarioEntity usuario = usuarioOpt.get();
         PeliculaEntity pelicula = peliculaOpt.get();
 
-        Optional<CalificacionEntity> calificacionExistente = calificacionRepository.findByUsuarioAndPelicula(usuario, pelicula);
+        Optional<CalificacionEntity> existente = calificacionRepository.findByUsuarioAndPelicula(usuario, pelicula);
 
         CalificacionEntity calificacion;
 
-        if (calificacionExistente.isPresent()) {
-
-            return new ResponseBase<>(400, "Ya has calificado esta película anteriormente.", null);
-//            calificacion = calificacionExistente.get();
-//            calificacion.setRating(request.getRate());
-
+        if (existente.isPresent()) {
+            calificacion = existente.get();
+            calificacion.setRating(request.getRate());
         } else {
-            // Si es la primera vez, creamos una nueva calificación
             calificacion = new CalificacionEntity();
             calificacion.setUsuario(usuario);
             calificacion.setPelicula(pelicula);
@@ -103,28 +108,72 @@ public class CalificacionServiceImpl implements CalificacionService {
     }
 
     @Override
-    public ResponseBase<String> eliminarCalificacion(String username, String nombrePelicula) {
-        Optional<UsuarioEntity> usuarioDelet = usuarioRepository.findByCorreo(username);
-        if (usuarioDelet.isEmpty()) {
-            return new ResponseBase<>(404, "Usuario no encontrado", null);
+    public ResponseBase<String> eliminarCalificacion(int idPeli, Authentication auth) {
+        String email = auth.getName();
+
+        Optional<UsuarioEntity> usuarioOpt = usuarioRepository.findByCorreo(email);
+        if (usuarioOpt.isEmpty()) {
+            return new ResponseBase<>(400, "Usuario no encontrado", null);
         }
 
-        Optional <PeliculaEntity> peliculaDelete = peliculaRepository.findByNombre(nombrePelicula);
-        if (peliculaDelete.isEmpty()) {
+        Optional<PeliculaEntity> peliculaOpt = peliculaRepository.findById(idPeli);
+
+        if (peliculaOpt.isEmpty()) {
             return new ResponseBase<>(404, "Película no encontrada", null);
         }
 
-        UsuarioEntity usuario = usuarioDelet.get();
-        PeliculaEntity pelicula = peliculaDelete.get();
+        UsuarioEntity usuario = usuarioOpt.get();
+        PeliculaEntity pelicula = peliculaOpt.get();
 
-        Optional<CalificacionEntity> calificacionDelete = calificacionRepository.findByUsuarioAndPelicula(usuario, pelicula);
+        Optional<CalificacionEntity> existente = calificacionRepository.findByUsuarioAndPelicula(usuario, pelicula);
 
-        if (calificacionDelete.isEmpty()) {
-            return new ResponseBase<>(404, "No existe una calificación para eliminar", null);
+        if (existente.isEmpty()) {
+            return new ResponseBase<>(404, "No existe calificación para eliminar", null);
         }
 
-        calificacionRepository.delete(calificacionDelete.get());
+        calificacionRepository.delete(existente.get());
 
-        return new ResponseBase<>(200, "Calificación eliminada con éxito", null);
+        return new ResponseBase<>(200, "Calificación eliminada correctamente", null);
+
+    }
+
+    @Override
+    public ResponseBase<String> eliminarCalificacionAdmin(int idPelicula, String correo) {
+        Optional<UsuarioEntity> usuarioOpt = usuarioRepository.findByCorreo(correo);
+        if (usuarioOpt.isEmpty()) {
+            return new ResponseBase<>(400, "Usuario no encontrado", null);
+        }
+        Optional<PeliculaEntity> peliculaOpt = peliculaRepository.findById(idPelicula);
+        if (peliculaOpt.isEmpty()){
+            return new ResponseBase<>(404, "Película no encontrada", null);
+        }
+
+        UsuarioEntity usuario = usuarioOpt.get();
+        PeliculaEntity pelicula = peliculaOpt.get();
+
+        Optional<CalificacionEntity> existente = calificacionRepository.findByUsuarioAndPelicula(usuario, pelicula);
+        if (existente.isEmpty()) {
+            return new ResponseBase<>(404, "No existe calificación para eliminar", null);
+        }
+
+        calificacionRepository.delete(existente.get());
+
+        return new ResponseBase<>(200, "Calificación eliminada correctamente", null);
+
+    }
+
+    @Override
+    public List<CalificacionResponse> findAll() {
+        List<CalificacionEntity> lista = calificacionRepository.findAll();
+
+        return lista.stream()
+                .map(calificacion -> new CalificacionResponse(
+                        calificacion.getCalificacionId(),
+                        calificacion.getRating(),
+                        calificacion.getPelicula().getPeliculaId(),
+                        calificacion.getPelicula().getNombre(),
+                        calificacion.getUsuario().getCorreo()
+                ))
+                .toList();
     }
 }

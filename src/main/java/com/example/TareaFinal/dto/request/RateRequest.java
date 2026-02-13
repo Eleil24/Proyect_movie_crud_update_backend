@@ -7,5 +7,5 @@ import lombok.Setter;
 @Setter
 public class RateRequest {
     private Integer rate;
-    private String nomPelicula;
+    private int idPelicula;
 }
